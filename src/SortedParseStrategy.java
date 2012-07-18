@@ -10,7 +10,7 @@ public class SortedParseStrategy<E> implements CircuitParseStrategy<Gate> {
 	}
 	
 	@Override
-	public List<List<Gate>> getCircuit() {
+	public List<List<Gate>> getParsedCircuit() {
 		// TODO Auto-generated method stub
 		return null;
 	}

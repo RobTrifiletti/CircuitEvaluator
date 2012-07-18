@@ -44,12 +44,12 @@ public class CircuitEvaluator implements Runnable {
 			else if (circuitFilename == null){
 				circuitFilename = args[param];
 			}
-			else if (outputFilename == null) {
-				outputFilename = args[param];
-			}
 			else if (args[param].equals("-f")){
 				parseStrategy = 
 						new FairplayCompilerParseStrategy<Gate>(circuitFilename);
+			}
+			else if (outputFilename == null) {
+				outputFilename = args[param];
 			}
 
 			else System.out.println("Unparsed: " + args[param]); 
@@ -61,11 +61,11 @@ public class CircuitEvaluator implements Runnable {
 		if(parseStrategy == null){
 			parseStrategy = new SortedParseStrategy<Gate>(circuitFilename);
 		}
-		
+
 		File inputFile = new File(inputFilename);
 		File circuitFile = new File(circuitFilename);
 		File outputFile = new File(outputFilename);
-		
+
 		if (!inputFile.exists()){
 			System.out.println("Inputfile: " + inputFile.getName() + " not found");
 			return;
@@ -83,18 +83,11 @@ public class CircuitEvaluator implements Runnable {
 	@Override
 	public void run() {
 		List<char[]> inputs = getInputs();
-		for(char[] chs: inputs){
-			for(char c: chs){
-				System.out.println(c);
-			}
-			System.out.println("---");
-		}
-		return;
+		List<List<Gate>> layersOfGates = parseStrategy.getParsedCircuit();
 	}
 
 	private List<char[]> getInputs(){
 		List<char[]> inputs = new ArrayList<char[]>();
-		System.out.println(inputFile);
 
 		BufferedReader fbr;
 		try {
@@ -108,7 +101,7 @@ public class CircuitEvaluator implements Runnable {
 				inputs.add(line.toCharArray());
 			}
 			fbr.close();
-			
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

@@ -11,7 +11,7 @@ public class FairplayCompilerParseStrategy<E> implements CircuitParseStrategy<Ga
 	}
 	
 	@Override
-	public List<List<Gate>> getCircuit() {
+	public List<List<Gate>> getParsedCircuit() {
 		List<Gate> gates= circuitSorter.getParsedGates();
 		List<List<Gate>> sortedGates = circuitSorter.getTimestampedGates(gates);
 		
