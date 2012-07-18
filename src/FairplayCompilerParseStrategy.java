@@ -1,4 +1,4 @@
-import java.nio.charset.Charset;
+import java.io.File;
 import java.util.List;
 
 
@@ -7,7 +7,7 @@ public class FairplayCompilerParseStrategy<E> implements CircuitParseStrategy<Ga
 	private CircuitSorter circuitSorter;
 	
 	public FairplayCompilerParseStrategy(String circuitFilename){
-		this.circuitSorter = new CircuitSorter(circuitFilename, "");
+		this.circuitSorter = new CircuitSorter(new File(circuitFilename), null);
 	}
 	
 	@Override

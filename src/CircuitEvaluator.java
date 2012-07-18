@@ -1,4 +1,11 @@
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 
 public class CircuitEvaluator implements Runnable {
@@ -8,21 +15,12 @@ public class CircuitEvaluator implements Runnable {
 	private File outputFile;
 	private CircuitParseStrategy<Gate> parseStrategy;
 
-	public CircuitEvaluator(String inputFilename, String circuitFilename,
-			String outputFilename, CircuitParseStrategy<Gate> parseStrategy){
-		this.inputFile = new File(inputFilename);
-		this.circuitFile = new File(circuitFilename);
-		this.outputFile = new File(outputFilename);
+	public CircuitEvaluator(File inputFile, File circuitFile,
+			File outputFile, CircuitParseStrategy<Gate> parseStrategy){
+		this.inputFile = inputFile;
+		this.circuitFile = circuitFile;
+		this.outputFile = outputFile;
 		this.parseStrategy = parseStrategy;
-
-		if (!inputFile.exists()){
-			System.out.println("Inputfile: " + inputFile.getName() + " not found");
-			return;
-		}
-		else if (!circuitFile.exists()){
-			System.out.println("Inputfile: " + circuitFile.getName() + " not found");
-			return;
-		}
 	}
 
 	/**
@@ -63,20 +61,57 @@ public class CircuitEvaluator implements Runnable {
 		if(parseStrategy == null){
 			parseStrategy = new SortedParseStrategy<Gate>(circuitFilename);
 		}
-				
-		CircuitEvaluator eval = new CircuitEvaluator(inputFilename, circuitFilename,
-				outputFilename, parseStrategy);
+		
+		File inputFile = new File(inputFilename);
+		File circuitFile = new File(circuitFilename);
+		File outputFile = new File(outputFilename);
+		
+		if (!inputFile.exists()){
+			System.out.println("Inputfile: " + inputFile.getName() + " not found");
+			return;
+		}
+		else if (!circuitFile.exists()){
+			System.out.println("Inputfile: " + circuitFile.getName() + " not found");
+			return;
+		}
+
+		CircuitEvaluator eval = new CircuitEvaluator(inputFile, circuitFile,
+				outputFile, parseStrategy);
 		eval.run();
 	}
 
 	@Override
 	public void run() {
-		int[][] inputs = getInputs();
-		List<List<Gate>> sortedCircuit;
-	}
-	
-	private int[][] getInputs(){
-		return null;
+		List<char[]> inputs = getInputs();
+		for(char[] chs: inputs){
+			for(char c: chs){
+				System.out.println(c);
+			}
+			System.out.println("---");
+		}
+		return;
 	}
 
+	private List<char[]> getInputs(){
+		List<char[]> inputs = new ArrayList<char[]>();
+		System.out.println(inputFile);
+
+		BufferedReader fbr;
+		try {
+			fbr = new BufferedReader(new InputStreamReader(
+					new FileInputStream(inputFile), Charset.defaultCharset()));
+			String line = "";
+			while((line = fbr.readLine()) != null) {
+				if (line.isEmpty()){
+					continue;
+				}
+				inputs.add(line.toCharArray());
+			}
+			fbr.close();
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return inputs;
+	}
 }
