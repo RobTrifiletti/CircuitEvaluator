@@ -114,6 +114,7 @@ public class CircuitEvaluator implements Runnable {
 		
 		HashMap<Integer, Boolean> evals = new HashMap<Integer, Boolean>();
 		
+		// Found here http://stackoverflow.com/questions/9646214/splitting-a-byte-into-bits
 		int pos = 0;
 		for(byte b: inputs){
 			evals.put(pos++, (b & 0x1) != 0);
