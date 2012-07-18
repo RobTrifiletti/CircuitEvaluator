@@ -1,11 +1,8 @@
-import java.io.BufferedReader;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class CircuitEvaluator implements Runnable {
@@ -82,29 +79,114 @@ public class CircuitEvaluator implements Runnable {
 
 	@Override
 	public void run() {
-		List<char[]> inputs = getInputs();
+		byte[] inputs = getInputs();
 		List<List<Gate>> layersOfGates = parseStrategy.getParsedCircuit();
+		byte[] result = evaluateCircuit(layersOfGates, inputs);
 	}
 
-	private List<char[]> getInputs(){
-		List<char[]> inputs = new ArrayList<char[]>();
-
-		BufferedReader fbr;
+	private byte[] getInputs(){
+		byte[] result = null;
+		BufferedInputStream input;
 		try {
-			fbr = new BufferedReader(new InputStreamReader(
-					new FileInputStream(inputFile), Charset.defaultCharset()));
-			String line = "";
-			while((line = fbr.readLine()) != null) {
-				if (line.isEmpty()){
-					continue;
+			input = new BufferedInputStream(new FileInputStream(inputFile));
+			result = new byte[(int)inputFile.length()];
+			int totalBytesRead = 0;
+			while(totalBytesRead < result.length) {
+				int bytesRemaining = result.length - totalBytesRead;
+				//input.read() returns -1, 0, or more :
+				
+				int bytesRead = input.read(result, totalBytesRead, bytesRemaining); 
+				if (bytesRead > 0){
+					totalBytesRead = totalBytesRead + bytesRead;
 				}
-				inputs.add(line.toCharArray());
 			}
-			fbr.close();
+			input.close();
 
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return inputs;
+		return result;
+	}
+	
+
+	private byte[] evaluateCircuit(List<List<Gate>> layersOfGates, byte[] inputs) {
+		byte[] result = new byte[inputs.length/2];
+		
+		HashMap<Integer, Boolean> evals = new HashMap<Integer, Boolean>();
+		
+		int pos = 0;
+		for(byte b: inputs){
+			evals.put(pos++, (b & 0x1) != 0);
+			evals.put(pos++, (b & 0x2) != 0);
+			evals.put(pos++, (b & 0x4) != 0);
+			evals.put(pos++, (b & 0x8) != 0);
+			evals.put(pos++, (b & 0x10) != 0);
+			evals.put(pos++, (b & 0x20) != 0);
+			evals.put(pos++, (b & 0x40) != 0);
+			evals.put(pos++, (b & 0x80) != 0);	
+		}
+		
+		
+		for(List<Gate> layer: layersOfGates){
+			for(Gate g: layer){
+				String gate = g.getGate();
+				char[] gateArray = gate.toCharArray();
+				
+				System.out.println(g);
+				System.out.println(layersOfGates.indexOf(layer));
+				boolean leftInput = evals.get(g.getLeftWireIndex());
+				boolean rightInput = evals.get(g.getRightWireIndex());
+				
+				if (leftInput == false &&
+						rightInput == false){
+					if(gateArray.length < 4){
+						evals.put(g.getOutputWireIndex(), false);
+						continue;
+					}
+					else if (gateArray[0] == '1'){
+						evals.put(g.getOutputWireIndex(), true);
+					}
+					else evals.put(g.getOutputWireIndex(), false);
+				}
+				else if(leftInput == false
+						&& rightInput == true){
+					if(gateArray.length < 3){
+						evals.put(g.getOutputWireIndex(), false);
+						continue;
+					}
+					else if (gateArray[0] == '1'){
+						evals.put(g.getOutputWireIndex(), true);
+					}
+					else evals.put(g.getOutputWireIndex(), false);
+					
+				}
+				else if(leftInput == true &&
+						rightInput == false){
+					if(gateArray.length < 2){
+						evals.put(g.getOutputWireIndex(), false);
+						continue;
+					}
+					else if (gateArray[0] == '1'){
+						evals.put(g.getOutputWireIndex(), true);
+					}
+					else evals.put(g.getOutputWireIndex(), false);
+					
+				}
+				else if(leftInput == true &&
+						rightInput == true){
+					if(gateArray.length < 1){
+						evals.put(g.getOutputWireIndex(), false);
+						continue;
+					}
+					else if (gateArray[0] == '1'){
+						evals.put(g.getOutputWireIndex(), true);
+					}
+					else evals.put(g.getOutputWireIndex(), false);
+				}
+			}
+		}
+		System.out.println(evals.size());
+		
+		return null;
 	}
 }
