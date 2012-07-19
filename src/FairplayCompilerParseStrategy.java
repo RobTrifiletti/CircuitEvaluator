@@ -11,8 +11,10 @@ public class FairplayCompilerParseStrategy<E> implements CircuitParseStrategy<Ga
 	public List<List<Gate>> getParsedCircuit() {
 		return null;
 	}
-	
-	public String getHeader(List<List<Gate>> sortedGates){
+
+	@Override
+	public String getHeader() {
+		// TODO Auto-generated method stub
 		return null;
 	}
 

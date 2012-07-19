@@ -11,15 +11,15 @@ import java.util.List;
 public class SortedParseStrategy<E> implements CircuitParseStrategy<Gate> {
 
 	private File circuitFile;
-	
+
 	public SortedParseStrategy(String circuitFilename){
 		this.circuitFile = new File(circuitFilename);
 	}
-	
+
 	@Override
 	public List<List<Gate>> getParsedCircuit() {
 		List<List<Gate>> layersOfGates = new ArrayList<List<Gate>>();
-		
+
 		try {
 			BufferedReader fbr = new BufferedReader(new InputStreamReader(
 					new FileInputStream(circuitFile), Charset.defaultCharset()));
@@ -30,7 +30,7 @@ public class SortedParseStrategy<E> implements CircuitParseStrategy<Gate> {
 				if (line.isEmpty()){
 					continue;
 				}
-				
+
 				if(line.startsWith("*")){
 					currentLayer = new ArrayList<Gate>();
 					layersOfGates.add(currentLayer);
@@ -40,21 +40,32 @@ public class SortedParseStrategy<E> implements CircuitParseStrategy<Gate> {
 				/*
 				 * Parse each gate line and count numberOfNonXORGates
 				 */
-				Gate g = new Gate(line);
+				GateEval g = new GateEval(line);
 				currentLayer.add(g);
 			}
 			fbr.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		return layersOfGates;
 	}
 
 	@Override
-	public String getHeader(List<List<Gate>> sortedGates) {
-		// TODO Auto-generated method stub
-		return null;
+	public String getHeader() {
+		BufferedReader fbr = null;
+		String line = null;
+		try {
+			fbr = new BufferedReader(new InputStreamReader(
+					new FileInputStream(circuitFile), Charset.defaultCharset()));
+			line = fbr.readLine();
+			fbr.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return line;
+
 	}
 
 }
