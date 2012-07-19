@@ -211,7 +211,7 @@ public class CircuitEvaluator implements Runnable {
 		 }
 
 		 if(outputFilename == null) {
-			 outputFilename = "out.bin";
+			 outputFilename = "data/out.bin";
 		 }
 		 if(parseStrategy == null){
 			 parseStrategy = new SortedParseStrategy<Gate>(circuitFilename);
