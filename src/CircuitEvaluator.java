@@ -8,6 +8,10 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 
+/**
+ * @author Roberto Trifiletti
+ *
+ */
 public class CircuitEvaluator implements Runnable {
 
 	private File inputFile;
@@ -18,6 +22,12 @@ public class CircuitEvaluator implements Runnable {
 	private int outputSize;
 	private int numberOfWires;
 
+	/**
+	 * 
+	 * @param inputFile
+	 * @param outputFile
+	 * @param parseStrategy
+	 */
 	public CircuitEvaluator(File inputFile, File outputFile,
 			CircuitParseStrategy<Gate> parseStrategy){
 		this.inputFile = inputFile;
@@ -45,13 +55,16 @@ public class CircuitEvaluator implements Runnable {
 		BitSet result = evalCircuit(layersOfGates, bitset);
 
 		writeCircuitOutput(result);
-		
+
 		// For testing purposes
 		//verifyOutput();
 
 	}
 
-	// Returns the contents of the file in a byte array.
+	/**
+	 * 
+	 * @return the contents of the inputFile as a byte array.
+	 */
 	public byte[] getBytesFromFile() {
 		byte[] bytesRead = null;
 		try {
@@ -65,6 +78,11 @@ public class CircuitEvaluator implements Runnable {
 		return bytesRead;
 	}
 
+	/**
+	 * Method for converting a byte[] to a BitSet
+	 * @param bytes
+	 * @return BitSet corresponding to the byte[], in little endian form
+	 */
 	public BitSet bitsetToByteArray(byte[] bytes) {
 		BitSet bits = new BitSet();
 		for (int i=0; i<bytes.length*8; i++) {
@@ -75,6 +93,12 @@ public class CircuitEvaluator implements Runnable {
 		return bits;
 	}
 
+	/**
+	 * Method for evaluating the given circuit on the given input bits
+	 * @param layersOfGates
+	 * @param inputs
+	 * @return the resulting output of the circuit on the given input
+	 */
 	public BitSet evalCircuit(List<List<Gate>> layersOfGates, BitSet inputs) {
 		BitSet result = new BitSet();
 
@@ -150,6 +174,10 @@ public class CircuitEvaluator implements Runnable {
 		return result;
 	}
 
+	/**
+	 * Method for outputting the computed result to a file
+	 * @param result
+	 */
 	public void writeCircuitOutput(BitSet result) {
 		//Convert to big endian for correct output format
 		byte[] out = toByteArray(littleEndianToBigEndian(result));
@@ -162,7 +190,11 @@ public class CircuitEvaluator implements Runnable {
 		}
 	}
 
-
+	/**
+	 * Method to convert a BitSet to a byte[]
+	 * @param bits
+	 * @return the corresponding byte[]
+	 */
 	public byte[] toByteArray(BitSet bits) {
 		byte[] bytes = new byte[bits.size()/8];
 		for (int i=0; i<bits.size(); i++) {
@@ -173,6 +205,11 @@ public class CircuitEvaluator implements Runnable {
 		return bytes;
 	}
 
+	/**
+	 * Method for converting a BitSet from little endian format to big endian
+	 * @param bitset
+	 * @return
+	 */
 	public BitSet littleEndianToBigEndian(BitSet bitset){
 		BitSet result = new BitSet(bitset.size());
 		for(int i = 0; i < bitset.size(); i++){
@@ -181,6 +218,10 @@ public class CircuitEvaluator implements Runnable {
 		return result;
 	}
 
+	/**
+	 * Method for verifying the test vectors of AES from
+	 * http://www.inconteam.com/software-development/41-encryption/55-aes-test-vectors#aes-ecb-128
+	 */
 	public void verifyOutput() {
 		File expectedResultFile = null;
 		if(inputFile.getName().equals("input0.bin")){
@@ -195,7 +236,7 @@ public class CircuitEvaluator implements Runnable {
 		else if(inputFile.getName().equals("input3.bin")){
 			expectedResultFile = new File("data/expected3.bin");
 		}
-		
+
 		try {
 			if(FileUtils.contentEquals(expectedResultFile, outputFile)){
 				System.out.println("Circuit evaluated correctly");
@@ -205,7 +246,11 @@ public class CircuitEvaluator implements Runnable {
 		}
 	}
 
-	// Helper method for debugging
+	/**
+	 * Method for visual representation of the given bitset
+	 * @param bitset
+	 * @return a string corresponding to the given bitset
+	 */
 	public String bitsetToBitString(BitSet bitset) {
 		String res = "";
 		for(int i = 0; i < bitset.size(); i++){
@@ -220,7 +265,11 @@ public class CircuitEvaluator implements Runnable {
 		return res;
 	}
 
-	/**
+	/** Input format: inputfile (binary file) circuitfile.txt outputfile.txt
+	 * Both inputfile and circuitfile.txt must exist, else error.
+	 * If no output filename is supplied, data/out.txt is chosen by default
+	 * Optional: add a -f argument if you supply a circuit in the Fairplay compiled
+	 * format.
 	 * @param args
 	 */
 	public static void main(String[] args) {
