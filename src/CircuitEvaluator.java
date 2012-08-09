@@ -153,8 +153,6 @@ public class CircuitEvaluator implements Runnable {
 	public void writeCircuitOutput(BitSet result) {
 		//Convert to big endian for correct output format
 		byte[] out = toByteArray(littleEndianToBigEndian(result));
-		System.out.println(result.size());
-		System.out.println(out.length);
 		try {
 			FileOutputStream outputStream = new FileOutputStream(outputFile);
 			outputStream.write(out);

@@ -1,6 +1,8 @@
 import java.util.List;
 
-
+/*
+ * Stub if needed to evaluate a fairplay compiled circuit
+ */
 public class FairplayCompilerParseStrategy<E> implements CircuitParseStrategy<Gate> {
 
 	public FairplayCompilerParseStrategy(String circuitFilename){
