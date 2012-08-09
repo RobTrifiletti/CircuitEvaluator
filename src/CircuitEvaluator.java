@@ -1,11 +1,12 @@
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
+
+import org.apache.commons.io.FileUtils;
 
 public class CircuitEvaluator implements Runnable {
 
@@ -31,55 +32,50 @@ public class CircuitEvaluator implements Runnable {
 
 	@Override
 	public void run() {
-		BitSet inputs = readInputs();
 		if(inputFile.length() != inputSize/8){
 			System.out.println("Input mismatch, check inputfile");
 			return;
 		}
 
+		byte[] bytesRead = getBytesFromFile();
+
+		BitSet bitset = bitsetToByteArray(bytesRead);
+
 		List<List<Gate>> layersOfGates = parseStrategy.getParsedCircuit();
-		BitSet result = getCircuitOutput(layersOfGates, inputs);
+		BitSet result = evalCircuit(layersOfGates, bitset);
 
 		writeCircuitOutput(result);
+		
+		// For testing purposes
+		//verifyOutput();
 
-		/*
-		 * For visual output of the bits to standard out
-		 */
-//		for(int i = 0; i < result.size(); i++){
-//			if(result.get(i)){
-//				System.out.print('1');
-//			}
-//			else System.out.print('0');
-//		}
 	}
 
-	private BitSet readInputs() {
-		BitSet result = new BitSet(inputSize);
-		BufferedInputStream in;
+	// Returns the contents of the file in a byte array.
+	public byte[] getBytesFromFile() {
+		byte[] bytesRead = null;
 		try {
-			in = new BufferedInputStream(new FileInputStream(inputFile));
-			int buf = -1;
-			int j = 0;
-			while((buf = in.read()) > -1) {
-				buf &= 0xFF;
-				int cursor = 0x80;
-				for(int i = 0;i < 8;i++) {
-					if((buf & cursor) > 0){
-						result.set(j);
-					}
-					cursor >>= 1;
-					j++;
-				}
-			}
-			in.close();
-		}
-		catch (IOException e) {
+			RandomAccessFile f = new RandomAccessFile(inputFile, "r");
+			bytesRead = new byte[(int)f.length()];
+			f.read(bytesRead);
+			f.close();
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return result;
+		return bytesRead;
 	}
 
-	private BitSet getCircuitOutput(List<List<Gate>> layersOfGates, BitSet inputs) {
+	public BitSet bitsetToByteArray(byte[] bytes) {
+		BitSet bits = new BitSet();
+		for (int i=0; i<bytes.length*8; i++) {
+			if ((bytes[bytes.length-i/8-1]&(1<<(i%8))) > 0) {
+				bits.set((bytes.length*8 - 1) - i);
+			}
+		}
+		return bits;
+	}
+
+	public BitSet evalCircuit(List<List<Gate>> layersOfGates, BitSet inputs) {
 		BitSet result = new BitSet();
 
 		// Construct and fill up initial evaluation map with the inputs
@@ -146,7 +142,7 @@ public class CircuitEvaluator implements Runnable {
 			}
 		}
 		int startOfOutputGates = maxGateNumber - outputSize + 1;
-		for(int i =  startOfOutputGates; i < maxGateNumber; i++){
+		for(int i =  startOfOutputGates; i <= maxGateNumber; i++){
 			int outputIndex = i - startOfOutputGates;
 			result.set(outputIndex, evals.get(i));
 		}
@@ -154,9 +150,11 @@ public class CircuitEvaluator implements Runnable {
 		return result;
 	}
 
-	private void writeCircuitOutput(BitSet result) {
-		byte[] out = getByteArray(result);
-
+	public void writeCircuitOutput(BitSet result) {
+		//Convert to big endian for correct output format
+		byte[] out = toByteArray(littleEndianToBigEndian(result));
+		System.out.println(result.size());
+		System.out.println(out.length);
 		try {
 			FileOutputStream outputStream = new FileOutputStream(outputFile);
 			outputStream.write(out);
@@ -164,12 +162,12 @@ public class CircuitEvaluator implements Runnable {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
 	}
 
-	public byte[] getByteArray(BitSet bits) {
-		byte[] bytes = new byte[(bits.length() + 7) / 8];
-		for (int i=0; i<bits.length(); i++) {
+
+	public byte[] toByteArray(BitSet bits) {
+		byte[] bytes = new byte[bits.size()/8];
+		for (int i=0; i<bits.size(); i++) {
 			if (bits.get(i)) {
 				bytes[bytes.length-i/8-1] |= 1<<(i%8);
 			}
@@ -177,62 +175,108 @@ public class CircuitEvaluator implements Runnable {
 		return bytes;
 	}
 
+	public BitSet littleEndianToBigEndian(BitSet bitset){
+		BitSet result = new BitSet(bitset.size());
+		for(int i = 0; i < bitset.size(); i++){
+			result.set((result.size() - 1) - i, bitset.get(i));
+		}
+		return result;
+	}
+
+	public void verifyOutput() {
+		File expectedResultFile = null;
+		if(inputFile.getName().equals("input0.bin")){
+			expectedResultFile = new File("data/expected0.bin");
+		}
+		else if(inputFile.getName().equals("input1.bin")){
+			expectedResultFile = new File("data/expected1.bin");
+		}
+		else if(inputFile.getName().equals("input2.bin")){
+			expectedResultFile = new File("data/expected2.bin");
+		}
+		else if(inputFile.getName().equals("input3.bin")){
+			expectedResultFile = new File("data/expected3.bin");
+		}
+		
+		try {
+			if(FileUtils.contentEquals(expectedResultFile, outputFile)){
+				System.out.println("Circuit evaluated correctly");
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// Helper method for debugging
+	public String bitsetToBitString(BitSet bitset) {
+		String res = "";
+		for(int i = 0; i < bitset.size(); i++){
+			if (i != 0 && i % 8 == 0){
+				res += " ";
+			}
+			if(bitset.get(i)){
+				res += '1';
+			}
+			else res += '0';
+		}
+		return res;
+	}
 
 	/**
 	 * @param args
 	 */
-	 public static void main(String[] args) {
-		 if(args.length < 2){
-			 System.out.println("Incorrect number of arguments, please specify inputfile");
-			 return;
-		 }
+	public static void main(String[] args) {
+		if(args.length < 2){
+			System.out.println("Incorrect number of arguments, please specify inputfile");
+			return;
+		}
 
-		 String inputFilename = null;
-		 String circuitFilename = null;
-		 String outputFilename = null;
-		 CircuitParseStrategy<Gate> parseStrategy = null;
+		String inputFilename = null;
+		String circuitFilename = null;
+		String outputFilename = null;
+		CircuitParseStrategy<Gate> parseStrategy = null;
 
-		 for(int param = 0; param < args.length; param++){
-			 if (inputFilename == null) {
-				 inputFilename = args[param];
-			 }
-			 else if (circuitFilename == null){
-				 circuitFilename = args[param];
-			 }
-			 else if (args[param].equals("-f")){
-				 parseStrategy = 
-						 new FairplayCompilerParseStrategy<Gate>(circuitFilename);
-			 }
-			 else if (outputFilename == null) {
-				 outputFilename = args[param];
-			 }
+		for(int param = 0; param < args.length; param++){
+			if (inputFilename == null) {
+				inputFilename = args[param];
+			}
+			else if (circuitFilename == null){
+				circuitFilename = args[param];
+			}
+			else if (args[param].equals("-f")){
+				parseStrategy = 
+						new FairplayCompilerParseStrategy<Gate>(circuitFilename);
+			}
+			else if (outputFilename == null) {
+				outputFilename = args[param];
+			}
 
-			 else System.out.println("Unparsed: " + args[param]); 
-		 }
+			else System.out.println("Unparsed: " + args[param]); 
+		}
 
-		 if(outputFilename == null) {
-			 outputFilename = "data/out.bin";
-		 }
-		 if(parseStrategy == null){
-			 parseStrategy = new SortedParseStrategy<Gate>(circuitFilename);
-		 }
+		if(outputFilename == null) {
+			outputFilename = "data/out.bin";
+		}
+		if(parseStrategy == null){
+			parseStrategy = new SortedParseStrategy<Gate>(circuitFilename);
+		}
 
-		 File inputFile = new File(inputFilename);
-		 File circuitFile = new File(circuitFilename);
-		 File outputFile = new File(outputFilename);
+		File inputFile = new File(inputFilename);
+		File circuitFile = new File(circuitFilename);
+		File outputFile = new File(outputFilename);
 
-		 if (!inputFile.exists()){
-			 System.out.println("Inputfile: " + inputFile.getName() + " not found");
-			 return;
-		 }
-		 else if (!circuitFile.exists()){
-			 System.out.println("Inputfile: " + circuitFile.getName() + " not found");
-			 return;
-		 }
+		if (!inputFile.exists()){
+			System.out.println("Inputfile: " + inputFile.getName() + " not found");
+			return;
+		}
+		else if (!circuitFile.exists()){
+			System.out.println("Inputfile: " + circuitFile.getName() + " not found");
+			return;
+		}
 
 
-		 CircuitEvaluator eval = new CircuitEvaluator(inputFile,
-				 outputFile, parseStrategy);
-		 eval.run();
-	 }
+		CircuitEvaluator eval = new CircuitEvaluator(inputFile,
+				outputFile, parseStrategy);
+		eval.run();
+	}
 }
