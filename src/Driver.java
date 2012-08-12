@@ -48,7 +48,7 @@ public class Driver {
 			outputFilename = "data/out.bin";
 		}
 		if(parseStrategy == null){
-			parseStrategy = new SortedParseStrategy<Gate>(circuitFilename);
+			parseStrategy = new SortedCircuitParseStrategy<Gate>(circuitFilename);
 		}
 
 		File inputFile = new File(inputFilename);

@@ -54,7 +54,7 @@ public class CircuitEvaluator implements Runnable {
 
 		BitSet bitset = bitsetToByteArray(bytesRead);
 
-		List<List<Gate>> layersOfGates = parseStrategy.getParsedCircuit();
+		List<List<Gate>> layersOfGates = parseStrategy.getParsedGates();
 		BitSet result = evalCircuit(layersOfGates, bitset);
 
 		writeCircuitOutput(result);

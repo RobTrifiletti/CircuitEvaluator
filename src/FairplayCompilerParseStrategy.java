@@ -10,7 +10,7 @@ public class FairplayCompilerParseStrategy<E> implements CircuitParseStrategy<Ga
 	}
 	
 	@Override
-	public List<List<Gate>> getParsedCircuit() {
+	public List<List<Gate>> getParsedGates() {
 		return null;
 	}
 
