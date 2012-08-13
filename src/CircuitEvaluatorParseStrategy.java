@@ -1,7 +1,7 @@
 import java.util.List;
 
 
-public interface CircuitParseStrategy<E> {
+public interface CircuitEvaluatorParseStrategy<E> {
 
 	public List<List<E>> getParsedGates();
 	public String getHeader();

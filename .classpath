@@ -7,5 +7,7 @@
 			<attribute name="javadoc_location" value="jar:platform:/resource/CircuitEvaluator/lib/commons-io-2.4/commons-io-2.4-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="lib/CircuitConverter.jar"/>
+	<classpathentry kind="lib" path="lib/commons-collections-3.2.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

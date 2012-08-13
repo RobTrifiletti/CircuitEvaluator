@@ -8,11 +8,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class SortedCircuitParseStrategy<E> implements CircuitParseStrategy<Gate> {
+public class SortedCircuitParseImpl<E> implements CircuitEvaluatorParseStrategy<Gate> {
 
 	private File circuitFile;
 
-	public SortedCircuitParseStrategy(String circuitFilename){
+	public SortedCircuitParseImpl(String circuitFilename){
 		this.circuitFile = new File(circuitFilename);
 	}
 

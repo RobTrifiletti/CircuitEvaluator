@@ -14,10 +14,11 @@ import org.apache.commons.io.FileUtils;
  */
 public class CircuitEvaluator implements Runnable {
 
+	private static final int BYTESIZE = 8;
 	private File inputFile;
 	private File outputFile;
-	private CircuitParseStrategy<Gate> parseStrategy;
 	private boolean verify;
+	private List<List<Gate>> layersOfGates;
 
 	private int inputSize;
 	private int outputSize;
@@ -31,11 +32,11 @@ public class CircuitEvaluator implements Runnable {
 	 * @param parseStrategy
 	 */
 	public CircuitEvaluator(File inputFile, File outputFile,
-			CircuitParseStrategy<Gate> parseStrategy, boolean verify){
+			CircuitEvaluatorParseStrategy<Gate> parseStrategy, boolean verify){
 		this.inputFile = inputFile;
 		this.outputFile = outputFile;
-		this.parseStrategy = parseStrategy;
 		this.verify = verify;
+		layersOfGates = parseStrategy.getParsedGates();
 
 		String[] split = parseStrategy.getHeader().split(" ");
 		inputSize = Integer.parseInt(split[0]);
@@ -45,7 +46,7 @@ public class CircuitEvaluator implements Runnable {
 
 	@Override
 	public void run() {
-		if(inputFile.length() != inputSize/8){
+		if(inputFile.length() != inputSize/BYTESIZE){
 			System.out.println("Input mismatch, check inputfile");
 			return;
 		}
@@ -54,7 +55,6 @@ public class CircuitEvaluator implements Runnable {
 
 		BitSet bitset = bitsetToByteArray(bytesRead);
 
-		List<List<Gate>> layersOfGates = parseStrategy.getParsedGates();
 		BitSet result = evalCircuit(layersOfGates, bitset);
 
 		writeCircuitOutput(result);

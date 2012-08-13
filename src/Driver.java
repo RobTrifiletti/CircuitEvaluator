@@ -20,7 +20,7 @@ public class Driver {
 		String inputFilename = null;
 		String circuitFilename = null;
 		String outputFilename = null;
-		CircuitParseStrategy<Gate> parseStrategy = null;
+		CircuitEvaluatorParseStrategy<Gate> parseStrategy = null;
 		boolean verify = false;
 
 		for(int param = 0; param < args.length; param++){
@@ -32,7 +32,7 @@ public class Driver {
 			}
 			else if (args[param].equals("-f")){
 				parseStrategy = 
-						new FairplayCompilerParseStrategy<Gate>(circuitFilename);
+						new FairplayCompilerParseImpl<Gate>(circuitFilename);
 			}
 			else if (args[param].equals("-v")){
 				verify = true;
@@ -48,7 +48,7 @@ public class Driver {
 			outputFilename = "data/out.bin";
 		}
 		if(parseStrategy == null){
-			parseStrategy = new SortedCircuitParseStrategy<Gate>(circuitFilename);
+			parseStrategy = new SortedCircuitParseImpl<Gate>(circuitFilename);
 		}
 
 		File inputFile = new File(inputFilename);
