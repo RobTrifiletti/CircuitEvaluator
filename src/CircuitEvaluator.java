@@ -168,10 +168,17 @@ public class CircuitEvaluator implements Runnable {
 				}
 			}
 		}
-		int startOfOutputGates = maxGateNumber - outputSize + 1;
-		for(int i =  startOfOutputGates; i <= maxGateNumber; i++){
-			int outputIndex = i - startOfOutputGates;
-			result.set(outputIndex, evals.get(i));
+		int outputCounter = outputSize;
+		for(int i = maxGateNumber; outputCounter > 0; i--){
+			boolean res;
+			if (evals.containsKey(i)){
+				 res = evals.get(i);
+				 outputCounter--;
+				 result.set(outputCounter, res);
+			}
+			else {
+				continue;
+			}
 		}
 
 		return result;
